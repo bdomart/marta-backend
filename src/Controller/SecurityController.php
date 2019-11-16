@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractFOSRestController
 {
     /**
-     * @Rest\POST("login", name="app_login")
+     * @Rest\POST("/login", name="app_login")
      * @param AuthenticationUtils $authenticationUtils
      * @param Request $request
      * @return View
