@@ -55,9 +55,15 @@ class User implements UserInterface
      */
     private $addresses;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Site", mappedBy="user")
+     */
+    private $sites;
+
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
+        $this->sites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -199,6 +205,37 @@ class User implements UserInterface
             // set the owning side to null (unless already changed)
             if ($address->getUser() === $this) {
                 $address->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Site[]
+     */
+    public function getSites(): Collection
+    {
+        return $this->sites;
+    }
+
+    public function addSite(Site $site): self
+    {
+        if (!$this->sites->contains($site)) {
+            $this->sites[] = $site;
+            $site->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSite(Site $site): self
+    {
+        if ($this->sites->contains($site)) {
+            $this->sites->removeElement($site);
+            // set the owning side to null (unless already changed)
+            if ($site->getUser() === $this) {
+                $site->setUser(null);
             }
         }
 
