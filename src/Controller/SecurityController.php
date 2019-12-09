@@ -9,24 +9,21 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 /**
  * Class SecurityController
  * @package App\Controller
- * @Rest\Route("/api")
  */
 class SecurityController extends AbstractFOSRestController
 {
     /**
-     * @Rest\POST("/login", name="app_login")
+     * @Rest\Post("/login", name="app_login")
      * @param AuthenticationUtils $authenticationUtils
-     * @param Request $request
      * @return View
      */
-    public function login(AuthenticationUtils $authenticationUtils, Request $request): View
+    public function login(AuthenticationUtils $authenticationUtils): View
     {
         // if ($this->getUser()) {
         //    $this->redirectToRoute('target_path');
@@ -37,14 +34,11 @@ class SecurityController extends AbstractFOSRestController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return View::create([
-            'error' => $error,
-            'lastUsername' => $lastUsername
-        ], Response::HTTP_OK);
+        return View::create($this->getUser(), Response::HTTP_OK);
     }
 
     /**
-     * @Rest\POST("/logout", name="app_logout")
+     * @Rest\Post("/logout", name="app_logout")
      */
     public function logout()
     {
@@ -52,7 +46,7 @@ class SecurityController extends AbstractFOSRestController
     }
 
     /**
-     * @Route\POST("/register", name="app_register")
+     * @Rest\Post("/register", name="app_register")
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param EntityManagerInterface $em
