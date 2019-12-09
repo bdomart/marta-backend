@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -41,6 +43,22 @@ class Site
      * @ORM\JoinColumn(nullable=false)
      */
     private $user;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Tag", mappedBy="site")
+     */
+    private $tags;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Department", mappedBy="site")
+     */
+    private $departments;
+
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+        $this->departments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -103,6 +121,62 @@ class Site
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Tag[]
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags[] = $tag;
+            $tag->addSite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        if ($this->tags->contains($tag)) {
+            $this->tags->removeElement($tag);
+            $tag->removeSite($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Department[]
+     */
+    public function getDepartments(): Collection
+    {
+        return $this->departments;
+    }
+
+    public function addDepartment(Department $department): self
+    {
+        if (!$this->departments->contains($department)) {
+            $this->departments[] = $department;
+            $department->addSite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDepartment(Department $department): self
+    {
+        if ($this->departments->contains($department)) {
+            $this->departments->removeElement($department);
+            $department->removeSite($this);
+        }
 
         return $this;
     }
