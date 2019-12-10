@@ -54,10 +54,22 @@ class Site
      */
     private $departments;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Subscription", inversedBy="sites")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $subscription;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Video", mappedBy="site")
+     */
+    private $videos;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
         $this->departments = new ArrayCollection();
+        $this->videos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -176,6 +188,49 @@ class Site
         if ($this->departments->contains($department)) {
             $this->departments->removeElement($department);
             $department->removeSite($this);
+        }
+
+        return $this;
+    }
+
+    public function getSubscription(): ?Subscription
+    {
+        return $this->subscription;
+    }
+
+    public function setSubscription(?Subscription $subscription): self
+    {
+        $this->subscription = $subscription;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Video[]
+     */
+    public function getVideos(): Collection
+    {
+        return $this->videos;
+    }
+
+    public function addVideo(Video $video): self
+    {
+        if (!$this->videos->contains($video)) {
+            $this->videos[] = $video;
+            $video->setSite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVideo(Video $video): self
+    {
+        if ($this->videos->contains($video)) {
+            $this->videos->removeElement($video);
+            // set the owning side to null (unless already changed)
+            if ($video->getSite() === $this) {
+                $video->setSite(null);
+            }
         }
 
         return $this;
