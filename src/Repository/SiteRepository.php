@@ -19,6 +19,23 @@ class SiteRepository extends ServiceEntityRepository
         parent::__construct($registry, Site::class);
     }
 
+    public function findSitesByDepartmentOrTag($departments = [], $tags = [])
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->leftJoin('department', 'd')
+            ->leftJoin('tag', 't');
+
+        if ($departments) {
+            $qb->andWhere('d.id IN (' . implode(',', $departments) . ')');
+        }
+        if ($tags) {
+            $qb->andWhere('t.id IN (' . implode(',', $tags) . ')');
+        }
+
+        $query = $qb->getQuery();
+        return $query->execute();
+    }
+
     // /**
     //  * @return Site[] Returns an array of Site objects
     //  */
