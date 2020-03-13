@@ -3,13 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Form\RegistrationType;
+use App\Security\LoginFormAuthenticator;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 /**
@@ -25,16 +27,16 @@ class SecurityController extends AbstractFOSRestController
      */
     public function login(AuthenticationUtils $authenticationUtils): View
     {
-        // if ($this->getUser()) {
-        //    $this->redirectToRoute('target_path');
-        // }
+        $data = [];
+        if ($user = $this->getUser()) {
+            $data['token'] = $this->createApiToken($user->getId());
+            $this->redirectToRoute('app_homepage');
+        }
 
         // get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+        $data['error'] = $authenticationUtils->getLastAuthenticationError();
 
-        return View::create($this->getUser(), Response::HTTP_OK);
+        return View::create($data, Response::HTTP_BAD_REQUEST);
     }
 
     /**
@@ -49,28 +51,59 @@ class SecurityController extends AbstractFOSRestController
      * @Rest\Post("/register", name="app_register")
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param EntityManagerInterface $em
-     * @return View
+     * @param GuardAuthenticatorHandler $guardHandler
+     * @param LoginFormAuthenticator $authenticator
+     * @return Response|View
      */
-    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em): View
+    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, LoginFormAuthenticator $authenticator)
     {
         $user = new User();
+        $data = json_decode($request->getContent(), true);
 
-        if (empty($request->request->get("email"))
-            || empty($request->request->get("password"))) {
-            return View::create(['error' => 'Email or password cannot be empty'], Response::HTTP_BAD_REQUEST);
+        $form = $this->createForm(RegistrationType::class, $user);
+        $form->submit($data);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // encode the plain password
+            $user->setPassword(
+                $passwordEncoder->encodePassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
+            );
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // do anything else you need here, like send an email
+
+            $guardHandler->authenticateUserAndHandleSuccess(
+                $user,
+                $request,
+                $authenticator,
+                'main' // firewall name in security.yaml
+            );
+            return View::create($this->getUser(), Response::HTTP_OK);
+        } else {
+            $errors = [];
+            foreach ($form->getErrors() as $error) {
+                $errors[] = $error;
+            }
         }
-        if ($em->getRepository(User::class)->findOneBy(["email" => $request->request->get("email")])) {
-            return View::create(['error' => 'Email already exist'], Response::HTTP_BAD_REQUEST);
-        }
+        return View::Create(['errors' => $errors], Response::HTTP_BAD_REQUEST);
+    }
 
-        $user->setEmail($request->request->get("email"));
-        $password = $passwordEncoder->encodePassword($user, $request->request->get("password"));
-        $user->setPassword($password);
+    public function createApiToken($id)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $user = $entityManager->getRepository(User::class)->find($id);
 
-        $em->persist($user);
-        $em->flush();
+        $token = bin2hex($user->getEmail() . random_bytes(60));
 
-        return View::create($user, Response::HTTP_CREATED);
+        $user->setApiToken($token);
+        $entityManager->persist($user);
+
+        return $token;
     }
 }
