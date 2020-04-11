@@ -47,7 +47,7 @@ DirectoryIndex index.php
     #   following RewriteCond (best solution)
 
     # RewriteCond %{ENV:REDIRECT_STATUS} =""
-    # RewriteRule ^index\.php(?:/(.*)|$) %{ENV:BASE}/$1 [R=308,END]
+     RewriteRule ^index\.php(?:/(.*)|$) %{ENV:BASE}/$1 [R=308,END]
 
     # If the requested filename exists, simply serve it.
     # We only want to let Apache serve files and not directories.
