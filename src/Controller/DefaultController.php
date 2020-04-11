@@ -22,7 +22,7 @@ class DefaultController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\POST("/test_post", name="app_homepage_post")
+     * @Rest\Post("/test_post", name="app_homepage_post")
      * @return View
      */
     public function indexPost()
