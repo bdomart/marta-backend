@@ -14,25 +14,38 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
+        login:
+            pattern: ^/api/login
             stateless: true
             anonymous: true
             json_login:
-                check_path: /login
+                check_path: /api/login
                 username_path: email
                 password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        api:
+            pattern: ^/api
+            stateless: true
             guard:
                 authenticators:
-                    - App\Security\LoginFormAuthenticator
-            logout:
-                path: app_logout
-                # where to redirect after logout
-                # target: app_any_route
-#        token:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+
+#        main:
 #            stateless: true
+#            anonymous: true
+#            json_login:
+#                check_path: /login
+#                username_path: email
+#                password_path: password
 #            guard:
 #                authenticators:
-#                    - App\Security\TokenAuthenticator
+#                    - App\Security\LoginFormAuthenticator
+#            logout:
+#                path: app_logout
+#                # where to redirect after logout
+#                # target: app_any_route
+
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
