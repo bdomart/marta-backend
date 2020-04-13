@@ -24,12 +24,16 @@ security:
                 password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
-        api:
-            pattern: ^/api
+        private:
+            pattern: ^/api/private
             stateless: true
             guard:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
+        api:
+            pattern:  ^/api
+            stateless: true
+            anonymous: true
 
 #        main:
 #            stateless: true

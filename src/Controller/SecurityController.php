@@ -36,15 +36,7 @@ class SecurityController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post("/logout", name="app_logout")
-     */
-    public function logout()
-    {
-        throw new \Exception('This method can be blank - it will be intercepted by the logout key on your firewall');
-    }
-
-    /**
-     * @Rest\Post("/register", name="app_register")
+     * @Rest\Post("/api/register", name="api_register")
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param GuardAuthenticatorHandler $guardHandler
@@ -79,13 +71,21 @@ class SecurityController extends AbstractFOSRestController
 //                $authenticator,
 //                'main' // firewall name in security.yaml
 //            );
-            return View::create($this->getUser(), Response::HTTP_OK);
-        } else {
-            $errors = [];
-            foreach ($form->getErrors() as $error) {
-                $errors[] = $error;
+            return View::create([
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'roles' => $user->getRoles(),
+            ], Response::HTTP_CREATED);
+        }
+
+        $errors = [];
+        foreach ($form as $fieldName => $fieldValue) {
+            foreach ($fieldValue->getErrors(true) as $error) {
+                $errors[$fieldName] = $error->getMessage();
             }
         }
+
         return View::Create(['errors' => $errors], Response::HTTP_BAD_REQUEST);
     }
 }
