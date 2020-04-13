@@ -62,11 +62,6 @@ class User implements UserInterface
      */
     private $sites;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $apiToken;
-
     public function __construct()
     {
         $this->addresses = new ArrayCollection();
@@ -245,18 +240,6 @@ class User implements UserInterface
                 $site->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getApiToken(): ?string
-    {
-        return $this->apiToken;
-    }
-
-    public function setApiToken(string $apiToken): self
-    {
-        $this->apiToken = $apiToken;
 
         return $this;
     }

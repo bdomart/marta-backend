@@ -22,6 +22,15 @@ class DefaultController extends AbstractFOSRestController
     }
 
     /**
+     * @Rest\Post("/test_post", name="app_homepage_post")
+     * @return View
+     */
+    public function indexPost()
+    {
+        return View::create([], Response::HTTP_OK);
+    }
+
+    /**
      * @Rest\Get("/navigation", name="app_navigation")
      * @param Request $request
      * @return View
